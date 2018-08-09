@@ -168,7 +168,8 @@ tournamentRoute.post('/tournament/edit/:id', /*ensureLoggedIn('/'),*/(req, res, 
   }
 
   Tournament.findById(tournamentId)
-    .populate(tournamentId)
+    .populate("tournamentName")
+
       .then((theTournament)=>{
         if(req.user._id !== theTournament.administrator){
           res.redirect('/');
