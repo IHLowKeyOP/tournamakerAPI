@@ -173,7 +173,33 @@ tournamentRoute.get('/tournament/teamlist',/*ensureLoggedIn('/'),*/(req, res, ne
   })
 });
 
+
 //=============================================================>
+
+tournamentRoute.post('/tournament/update/:id', /*ensureLoggedIn('/'),*/(req, res, next) => {
+  // const newMember = req.body.memberid;
+  const tournamentId = req.params.id;
+  console.log('----------------------tournament', req.body)
+  const updatedTournament = {
+      tournamentName:           req.body.tournamentName,
+      // teamLogo:           req.body.image,
+      tournamentDescription:    req.body.tournamentDescription,
+      // win:                req.body.win, //ify
+      // lose:               req.body.lose, //ify
+      //players
+  } 
+  Tournament.findByIdAndUpdate(tournamentId, updatedTournament)// we made .then for 3rd push since you  
+      .then((response) => { 
+          res.json(response)
+      })                    
+      .catch((err) =>{
+          next(err);
+      })
+      //could only push 2 parms at one t
+
+
+    });
+
 //edit tournament details
 //this needs to be tournament/editTournament/:id in the future
 
