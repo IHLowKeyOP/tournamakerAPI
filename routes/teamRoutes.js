@@ -9,6 +9,8 @@ const passport                = require('passport')
 const LocalStrategy           = require('passport-local').Strategy;
 const flash                   = require('connect-flash');
 const ensureLoggedIn          = require('connect-ensure-login').ensureLoggedIn;
+const mongoose                  = require('mongoose');
+
 //===========================================>
 
 teamRoutes.post('/team/creation', /*ensureLoggedIn('/'),*/(req, res, next) => {
@@ -156,6 +158,26 @@ teamRoutes.get('/team/allteams', (req, res, next) => {
   });
 
 
+
+  teamRoutes.get('/team/tournamentTeams/:id', (req, res, next) => {
+    const tournamentId = req.params.id;
+    console.log('EXPRESS TOURNAMENT ID', tournamentId);
+    // User.find( { 'tenants': mongoose.Types.ObjectId(id) } )
+    Team.find({'tournaments': mongoose.Types.ObjectId(tournamentId)
+    })
+    .then((theTournamentTeams)=>{
+      res.json(theTournamentTeams);
+    })
+    .catch((err)=>{
+      res.json(err);
+    })
+    
+  });
+
+
+
+
+  
 
 
 
