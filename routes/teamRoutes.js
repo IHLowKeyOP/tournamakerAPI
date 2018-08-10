@@ -156,6 +156,24 @@ teamRoutes.get('/team/allteams', (req, res, next) => {
   });
 
 
+  teamRoutes.get('/team/tournamentTeams', (req, res, next) => {
+    const tournamentId = req.body.tournamentId;
+    Team.find({
+        tournaments: {tournamentId}
+    })
+    .then((theTournamentTeams)=>{
+      res.json(theTournamentTeams);
+    })
+    .catch((err)=>{
+      res.json(err);
+    })
+    
+  });
+
+
+
+
+  
 
 
 
