@@ -409,6 +409,26 @@ tournamentRoute.put('/tournament/team/edit/:id',/*ensureLoggedIn('/'),*/(req, re
     .catch(error => next(error))
   })
 
+
+  tournamentRoute.delete('/tournament/delete/:id', /*ensureLoggedIn('/'),*/(req, res, next) => {
+    const tournamentId = req.params.id;
+    console.log('TOURNAMENT ID', tournamentId)
+    Tournament.findByIdAndRemove(tournamentId)
+        .then((response) => { // look into difference between promises and callbacks*
+            res.json(response)
+        })
+        .catch((err) => {
+            next(err);
+        })
+})
+
+
+
+
+
+
+
+
 //delete team
 tournamentRoute.delete('/tournament/team/delete/:id',/*ensureLoggedIn('/'),*/(req, res, next)=>{
     if(!mongoose.Types.ObjectId.isValid(req.params.id)){
