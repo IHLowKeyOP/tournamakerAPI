@@ -25,7 +25,15 @@ const ensureLoggedIn          = require('connect-ensure-login').ensureLoggedIn;
 // })
 
 
-
+tournamentRoute.get('/tournament/alltournaments', (req, res, next)=>{
+  Tournament.find()
+    .then((alltheTournaments)=>{
+      res.json(alltheTournaments)
+    })
+      .catch((err)=>{
+        res.json(err)
+      })
+})
 
 
 
@@ -44,12 +52,7 @@ tournamentRoute.post('/tournament/team/delete/:id',(req, res, next)=>{
     })
   })
 //some changes
-//============================================================>
-//create tournament page IT WORKS BUT ONCE THE TOURNAMENT/TEAM IS CREATED WE NEED TO AUTOUPDATE
-//SO THAT THE USER ITSELF HAS A RECORD OF THE TOURNAMENTS THAT THEY ARE IN/THEY ADMIN
-//AND THE TEAMS THAT THEY ARE IN/THEY ADMIN. WE CAN DO THAT USING THE RESPONSE. CONSOLE LOG
-//THE RESPONSE TO SEE IF THE RESPONSE HAS THE ID. IF IT DOES, GRAB THAT ID AND IMMEDIATELY
-//FIND BY ID AND UPDATE.
+
 
 tournamentRoute.get('/tournament/create', /*ensureLoggedIn('/'),*/ (req, res, next)=>{
   Team.find()
@@ -60,6 +63,18 @@ tournamentRoute.get('/tournament/create', /*ensureLoggedIn('/'),*/ (req, res, ne
     res.json(err);
   })
 })
+
+
+
+
+
+
+
+
+
+
+
+
 //============================================================>
 // creating tournament
 tournamentRoute.post('/tournament/create',/*ensureLoggedIn('/'),*/(req, res, next)=>{
@@ -83,11 +98,13 @@ tournamentRoute.post('/tournament/create',/*ensureLoggedIn('/'),*/(req, res, nex
       res.status(400).json({ message: 'Your team name should contain 6 or more characters'});
       return;
     } //closed
+    
   Tournament.findOne({ tournamentName }, 'tournamentName', (err, foundTournament) => {
       if(foundTournament) {
         res.status(400).json({ message: 'The team name already exist' });
         return;
       }
+      
     const theTournament = new Tournament({
       tournamentName:           tournamentName,
       tournamentDescription:    tournamentDescription,
@@ -96,15 +113,36 @@ tournamentRoute.post('/tournament/create',/*ensureLoggedIn('/'),*/(req, res, nex
       numberOfTeams:            numberOfTeams,
       tournamentAdministrator:  tournamentAdministrator
       });
-    
+  
+
+
     theTournament.save((err) => {
       console.log('new: ', theTournament)
       if(err) {
         return res.status(400).json({ message: 'Something went wrong'})
       }
+      User.findByIdAndUpdate(theTournament.tournamentAdministrator, {$addToSet:{tournaments:theTournament._id}})
+      .then((whatHasBeenDone)=>{
+        console.log("User now has object id of the tournament");
+      })
+      .catch((err)=>{
+        next(err);
+      })
+
       res.json(theTournament)
     })
   })
+
+
+
+
+
+  
+
+
+
+
+
 })
 
 //============================================================>
@@ -112,7 +150,8 @@ tournamentRoute.post('/tournament/create',/*ensureLoggedIn('/'),*/(req, res, nex
 tournamentRoute.get('/tournament/details/:id',/*ensureLoggedIn('/'),*/(req, res, next)=>{
   const tournamentId = req.params.id;
   Tournament.findById(tournamentId)
-  .populate(tournamentId)
+  // .populate(tournamentId)
+  .populate('tournamentAdministrator')
   .then((theTournament) =>{
     res.json(theTournament);
   })
@@ -145,6 +184,92 @@ tournamentRoute.get('/tournament/teamlist',/*ensureLoggedIn('/'),*/(req, res, ne
 //3. Reactivate the check for administration: if req.user._id !== Touranment.administrator
 
 
+//Adding Players To Array
+
+
+
+//IF CODE BREAKS UNEXPECTEDLY, CHECK IF THIS IS CLOSED
+
+// --------------
+  
+
+tournamentRoute.post('/tournament/playerJoinsATournament', /*ensureLoggedIn('/'),*/(req, res, next)=>{
+  const tournamentId = req.body.tournamentId;
+  const idOfThePlayerJoiningThisTournament  = req.body.playerId;
+
+  Tournament.findByIdAndUpdate(tournamentId, {$addToSet:{playerPool:idOfThePlayerJoiningThisTournament}})
+  .then((afterThatIsDone)=>{
+    User.findByIdAndUpdate(idOfThePlayerJoiningThisTournament, {$addToSet:{tournaments:tournamentId}})
+      .then((whatHasBeenDone)=>{
+        console.log("what has been done",whatHasBeenDone);
+        res.json(whatHasBeenDone)
+      })
+      .catch((err)=>{
+        next(err);
+      })
+  })
+    .catch((err)=>{
+      next(err);
+    })
+  })
+
+
+  tournamentRoute.post('/tournament/teamJoinsATournament', /*ensureLoggedIn('/'),*/(req, res, next)=>{
+    const tournamentId = req.body.tournamentId;
+    const idOfTheTeamJoiningThisTournament  = req.body.teamId;
+  
+    Tournament.findByIdAndUpdate(tournamentId, {$addToSet:{teams:idOfTheTeamJoiningThisTournament}})
+    .then((afterThatIsDone)=>{
+      Team.findByIdAndUpdate(idOfTheTeamJoiningThisTournament, {$addToSet:{tournaments:tournamentId}})
+        .then((whatHasBeenDone)=>{
+          console.log("what has been done",whatHasBeenDone);
+          res.json(whatHasBeenDone)
+        })
+        .catch((err)=>{
+          next(err);
+        })
+    })
+      .catch((err)=>{
+        next(err);
+      })
+    })
+
+
+  tournamentRoute.post('/tournament/kickTeamFromTournament', /*ensureLoggedIn('/'),*/(req, res, next)=>{
+      const tournamentId = req.body.tournamentId;
+      const idOfTheTeamGettingKickedFromThisTournament  = req.body.teamId;
+    
+      //ASK CHAD: You may push into a losers array.
+      Tournament.findByIdAndUpdate(tournamentId, {$pull:{teams:idOfTheTeamGettingKickedFromThisTournament}})
+      .then((afterThatIsDone)=>{
+        Team.findByIdAndUpdate(idOfTheTeamGettingKickedFromThisTournament, {$pull:{tournaments:tournamentId}})
+          .then((whatHasBeenDone)=>{
+            console.log("what has been done",whatHasBeenDone);
+            res.json(whatHasBeenDone)
+          })
+          .catch((err)=>{
+            next(err);
+          })
+      })
+        .catch((err)=>{
+          next(err);
+        })
+      })
+  
+
+
+
+    // { $pull: { <field1>: <value|condition>, <field2>: <value|condition>, ... } }
+
+
+
+
+
+
+
+
+
+// -----------------------------
 //ADDING TEAMS TO ARRAY
 tournamentRoute.post('/tournament/edit/:id', /*ensureLoggedIn('/'),*/(req, res, next)=>{
   const tournamentId = req.params.id;
@@ -218,7 +343,6 @@ tournamentRoute.post('/tournament/edit/:id', /*ensureLoggedIn('/'),*/(req, res, 
       next(err);
     })
   })
-
 //===========================================>
 //tournament maker main page
 //============================================================>

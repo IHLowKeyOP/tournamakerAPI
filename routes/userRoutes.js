@@ -35,7 +35,8 @@ userRoutes.post('/signup', (req, res, next) => {
         const hashPass = bcrypt.hashSync(password, salt);
         const theUser = new User({
             username: username,
-            password: hashPass
+            password: hashPass,
+            // tournaments: [] not needed
         }); //closed
 
         theUser.save((err) => {
@@ -121,6 +122,10 @@ userRoutes.post('/login', (req, res, next) => {
 userRoutes.get('/profile/:id', /*ensureLoggedIn('/'),*/(req, res, next) => {
     const theId = req.params.id
     User.findById(theId)
+    .populate('tournaments')
+    .populate('tournamentAdminOf')
+    .populate('teamCaptainOf')
+    .populate('teamMemberOf')
     .then((theUser)=>{
       res.json(theUser)
     })
@@ -132,7 +137,7 @@ userRoutes.get('/profile/:id', /*ensureLoggedIn('/'),*/(req, res, next) => {
 
 //Check LOGIN
 userRoutes.get('/loggedin', /*ensureLoggedIn('/'),*/(req, res, next) => {
-    console.log('back: ', req.user)
+    console.log('Who is logged in: ', req.user)
     if (req.isAuthenticated()) {
         res.status(200).json(req.user);
         return;

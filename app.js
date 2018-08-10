@@ -81,5 +81,11 @@ app.use('/api', teamRoutes);
 const tournamentRoutes = require('./routes/tournamentRoutes')
 app.use('/api', tournamentRoutes);
 
+//THE LINE BELOW CALLS YOUR ANGULAR2 APP.
+//THIS WILL INTERFERE WITH DEV, SO COMMENT IT OUT WHEN DEV. 
+//REACTIVATE IT WHEN PRODUCTION TIME
+  // app.use((req, res, next) => {
+  //   res.sendfile(__dirname + '/public/index.html');
+  // });
 
 module.exports = app;

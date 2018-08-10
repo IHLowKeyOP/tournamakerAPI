@@ -1,6 +1,7 @@
 const express                 = require('express');
 const teamRoutes              = express.Router();
 const Team                    = require('../models/team');
+const User                    = require('../models/user')
 //===========================================>
 const bcrypt                  = require('bcryptjs')
 const session                 = require('express-session')
@@ -34,19 +35,28 @@ teamRoutes.post('/team/creation', /*ensureLoggedIn('/'),*/(req, res, next) => {
             lose: false,
         }); //closed
         theTeam.save((err) => {
-            res.json(theTeam)
-
             if (err) {
 
                 res.status(400).json({ message: 'Something went wrong' });
                 return;
-
             }
+            User.findByIdAndUpdate(theTeam.teamCaptain, {$addToSet:{teamCaptainOf:theTeam._id}})
+                .then((whatHasBeenDone)=>{
+                console.log("User now has object id of the tournament");
+                })
+                .catch((err)=>{
+                next(err);
+                })
+
+            res.json(theTeam)
+
+           
             // console.log('it works')
 
         }); //theTeam.save 
     }); // team.findOne
 }); // teamRoutes.post
+
 
 
 teamRoutes.post('/team/update/:id', /*ensureLoggedIn('/'),*/(req, res, next) => {
@@ -144,6 +154,13 @@ teamRoutes.get('/team/allteams', (req, res, next) => {
     })
     
   });
+
+
+
+
+
+
+
 
 
 module.exports = teamRoutes;

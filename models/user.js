@@ -10,6 +10,7 @@ const userSchema = new Schema({
     description: {type: String, default: "share your story"},
     role: {type: String, default: "guest"},
     stats: {type: String, default: "win: 0, lose: 0"},
+    tournaments: [{type: Schema.Types.ObjectId, default:[], ref: 'Tournament'}],
 
     //As well as the create a team route and create a tournament route
     //Will reference Giannini's PizzaBox to determine the objectId linking between creator and creation
