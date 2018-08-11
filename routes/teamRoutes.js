@@ -119,8 +119,10 @@ teamRoutes.delete('/team/delete/:id', /*ensureLoggedIn('/'),*/(req, res, next) =
 teamRoutes.get('/team/details/:id', /*ensureLoggedIn('/'),*/(req, res, next) => {
     const teamId = req.params.id;
     Team.findById(teamId)
+    Team.find({}).populate('teamId.teamRoster').exec(teamId)
     .populate('teamCaptain') //this tells to MongoDB to search for the object id that's in teamcaptain
     .then((theTeam)=>{
+        console.log(theTeam);
         res.json(theTeam);
     })
     .catch((err)=>{
